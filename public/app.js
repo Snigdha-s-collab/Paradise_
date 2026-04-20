@@ -33,12 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateNav() {
     if (currentUser) {
         document.getElementById('login-btn').style.display = 'none';
-        document.getElementById('logout-btn').style.display = 'inline-block';
+        document.getElementById('user-dropdown').style.display = 'inline-block';
+        document.getElementById('user-header-name').innerText = currentUser.name.split(' ')[0];
         document.getElementById('my-bookings-btn').style.display = 'inline-block';
         if (currentUser.role === 'admin') document.getElementById('admin-btn').style.display = 'inline-block';
     } else {
         document.getElementById('login-btn').style.display = 'inline-block';
-        document.getElementById('logout-btn').style.display = 'none';
+        document.getElementById('user-dropdown').style.display = 'none';
         document.getElementById('my-bookings-btn').style.display = 'none';
         document.getElementById('admin-btn').style.display = 'none';
     }
@@ -332,6 +333,11 @@ function setupEventListeners() {
     document.getElementById('logout-btn').onclick = () => {
         localStorage.removeItem('user'); currentUser = null; updateNav(); window.location.reload();
     };
+    
+    document.getElementById('help-btn').onclick = (e) => {
+        e.preventDefault();
+        alert("Need Help?\nParadise Helpline: +91 9876543210\nConcierge Desk: 1-800-PARADISE\nEmail: support@paradisehotel.com");
+    };
 
     document.getElementById('my-bookings-btn').onclick = async () => {
         if (!currentUser) return;
@@ -343,13 +349,24 @@ function setupEventListeners() {
             container.innerHTML = data.length === 0 ? '<p>No bookings found.</p>' : '';
             data.forEach(b => {
                 let s_txt = b.services_booked === "[]" ? "None" : "Included";
+                let cancelBtn = "";
+                if (b.status !== 'Cancelled') {
+                    // Check if > 48h from check_in
+                    let checkInDate = new Date(b.check_in + "T14:00:00");
+                    let hoursDiff = (checkInDate - new Date()) / (1000 * 60 * 60);
+                    if (hoursDiff >= 48) {
+                        cancelBtn = `<button class="btn-outline text-danger" style="padding:0.2rem 0.6rem; margin-top:0.5rem;" onclick="cancelBooking(${b.id})">Cancel Booking (Free)</button>`;
+                    }
+                }
+
                 container.innerHTML += `
                     <div class="card" style="margin-bottom:1rem; padding:1rem;">
                         <h3>Booking #${b.id} - ${b.room_type} Room</h3>
                         <p>Dates: ${b.check_in} to ${b.check_out} | Guests: ${b.guests}</p>
                         <p>Food: ${b.food_package} | Services: ${s_txt}</p>
                         <p style="color:var(--primary); font-size:1.1rem; font-weight:bold;">Total Paid: ₹${b.total_price}</p>
-                        <p>Status: <strong>${b.status}</strong></p>
+                        <p>Status: <strong class="${b.status === 'Cancelled' ? 'text-danger' : 'text-success'}">${b.status}</strong></p>
+                        ${cancelBtn}
                     </div>
                 `;
             });
@@ -415,3 +432,16 @@ function setupEventListeners() {
         } catch(e) { alert("Network error. Please try again."); }
     };
 }
+
+window.cancelBooking = async (id) => {
+    if (!confirm('Are you sure you want to cancel this booking? This action is free of charge if eligible.')) return;
+    try {
+        const res = await fetch(API_BASE + '/bookings/' + id + '/status', { method: 'PUT', body: JSON.stringify({status: 'Cancelled'}) });
+        if (res.ok) {
+            alert('Booking successfully cancelled.');
+            document.getElementById('my-bookings-btn').click();
+        } else {
+            alert('Could not cancel the booking at this time.');
+        }
+    } catch(e) { alert('Network error'); }
+};

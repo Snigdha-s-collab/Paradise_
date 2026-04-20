@@ -18,7 +18,17 @@
             </a>
             <a href="#" id="my-bookings-btn" style="display:none;">My Bookings</a>
             <a href="#" id="login-btn" class="btn-primary">Login / Sign Up</a>
-            <a href="#" id="logout-btn" class="btn-outline" style="display:none;">Logout</a>
+            
+            <div class="user-menu" id="user-dropdown" style="display:none;">
+                <button class="btn-outline" style="margin-left:1.5rem; display:flex; align-items:center; gap:0.5rem; font-family:inherit;">
+                    <span style="font-size:1.2rem;">👤</span> <span id="user-header-name">User</span>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#" id="help-btn">Help 📞</a>
+                    <a href="#" id="logout-btn">Logout &rarr;</a>
+                </div>
+            </div>
+            
             <a href="admin.html" id="admin-btn" class="btn-outline" style="display:none;">Admin</a>
         </nav>
     </header>
