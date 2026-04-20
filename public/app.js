@@ -39,9 +39,10 @@ function updateNav() {
 }
 
 function showSection(secId) {
-    document.getElementById('hero-sec').style.display = (secId === 'hero-sec' || secId === 'rooms') ? 'flex' : 'none';
+    document.getElementById('hero-sec').style.display = (secId === 'hero-sec') ? 'flex' : 'none';
     document.getElementById('sec-rooms').style.display = (secId === 'rooms') ? 'block' : 'none';
     document.getElementById('sec-services').style.display = (secId === 'services') ? 'block' : 'none';
+    document.body.style.overflow = (secId === 'hero-sec') ? 'hidden' : 'auto';
 }
 
 function toggleCart() {
@@ -53,14 +54,18 @@ async function loadRooms() {
     try {
         const res = await fetch(`${API_BASE}/rooms`);
         allRooms = await res.json();
-        // Since we have 45 physical rooms, we should uniquely group them for display by Type & AC so we don't show 45 identical cards.
-        const uniqueGroups = [];
+        const uniqueGroups = {};
         allRooms.forEach(r => {
-            if (!uniqueGroups.find(g => g.type === r.type && g.has_ac === r.has_ac)) {
-                uniqueGroups.push(r);
+            if (r.is_available) {
+                const key = r.type + '_' + r.has_ac;
+                if (!uniqueGroups[key]) {
+                    uniqueGroups[key] = { ...r, available_count: 1 };
+                } else {
+                    uniqueGroups[key].available_count++;
+                }
             }
         });
-        renderRooms(uniqueGroups);
+        renderRooms(Object.values(uniqueGroups));
     } catch (e) { console.error('Failed to load rooms'); }
 }
 
@@ -83,6 +88,7 @@ function renderRooms(rooms) {
             <img src="${room.image_url}" alt="${room.type}">
             <div class="card-content">
                 <h3>${room.type} Room ${room.has_ac ? '(AC)' : '(Non-AC)'}</h3>
+                <p style="color:var(--primary); font-weight:bold; margin-bottom: 0.5rem;">${room.available_count} Available</p>
                 <div class="card-price">₹${room.price} / night</div>
                 <div style="margin-bottom: 1rem;">${facs}</div>
                 <button class="btn-outline full-width" onclick="openRoomConfig('${room.type}', ${room.has_ac}, ${room.price}, '${room.image_url}', '${room.facilities}')">Configure & Add to Cart</button>
