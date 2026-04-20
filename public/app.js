@@ -360,11 +360,14 @@ function setupEventListeners() {
     document.getElementById('tab-login').onclick = () => { document.getElementById('login-form').style.display = 'block'; document.getElementById('signup-form').style.display = 'none'; document.getElementById('tab-login').className = 'active'; document.getElementById('tab-signup').className = ''; }
     document.getElementById('tab-signup').onclick = () => { document.getElementById('login-form').style.display = 'none'; document.getElementById('signup-form').style.display = 'block'; document.getElementById('tab-login').className = ''; document.getElementById('tab-signup').className = 'active'; }
     
-    document.getElementById('login-form').onsubmit = async (e) => {
-        e.preventDefault();
+    document.getElementById('btn-login-submit').onclick = async () => {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-password').value;
+        if (!email || !pass) return alert("Please enter both email and password.");
+        
         try {
             const res = await fetch(`${API_BASE}/login`, {
-                method: 'POST', body: JSON.stringify({ email: document.getElementById('login-email').value, password: document.getElementById('login-password').value })
+                method: 'POST', body: JSON.stringify({ email: email, password: pass })
             });
             const data = await res.json();
             if (res.ok) { 
@@ -379,22 +382,24 @@ function setupEventListeners() {
         } catch(e) { alert("Network error. Please try again."); }
     };
     
-    document.getElementById('signup-form').onsubmit = async (e) => {
-        e.preventDefault();
+    document.getElementById('btn-signup-submit').onclick = async () => {
+        const name = document.getElementById('signup-name').value;
+        const email = document.getElementById('signup-email').value;
+        const phone = document.getElementById('signup-phone').value;
+        const password = document.getElementById('signup-password').value;
+        if (!name || !email || !password) return alert("Please fill in name, email, and password.");
+        
         try {
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
             const res = await fetch(`${API_BASE}/register`, {
                 method: 'POST', body: JSON.stringify({ 
-                    name: document.getElementById('signup-name').value,
+                    name: name,
                     email: email,
-                    phone: document.getElementById('signup-phone').value,
+                    phone: phone,
                     password: password 
                 })
             });
             const data = await res.json();
             if (res.ok) { 
-                // Auto login to seamlessly take them to the rooms
                 const loginRes = await fetch(`${API_BASE}/login`, {
                     method: 'POST', body: JSON.stringify({ email, password })
                 });
