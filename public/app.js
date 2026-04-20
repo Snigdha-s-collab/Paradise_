@@ -11,7 +11,6 @@ let cart = {
 };
 
 // Modals
-const authModal = document.getElementById('auth-modal');
 const bookingModal = document.getElementById('booking-modal');
 const checkoutModal = document.getElementById('checkout-modal');
 const cartDrawer = document.getElementById('cart-drawer');
@@ -21,7 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRooms();
     loadServices();
     setupEventListeners();
-    showSection('hero-sec'); // Default to showing hero
+    
+    if (currentUser) {
+        document.getElementById('main-navbar').style.display = 'flex';
+        showSection('hero-sec');
+    } else {
+        document.getElementById('main-navbar').style.display = 'none';
+        showSection('auth');
+    }
 });
 
 function updateNav() {
@@ -39,10 +45,11 @@ function updateNav() {
 }
 
 function showSection(secId) {
+    document.getElementById('sec-auth').style.display = (secId === 'auth') ? 'flex' : 'none';
     document.getElementById('hero-sec').style.display = (secId === 'hero-sec') ? 'flex' : 'none';
     document.getElementById('sec-rooms').style.display = (secId === 'rooms') ? 'block' : 'none';
     document.getElementById('sec-services').style.display = (secId === 'services') ? 'block' : 'none';
-    document.body.style.overflow = (secId === 'hero-sec') ? 'hidden' : 'auto';
+    document.body.style.overflow = (secId === 'hero-sec' || secId === 'auth') ? 'hidden' : 'auto';
 }
 
 function toggleCart() {
@@ -248,12 +255,6 @@ function checkout() {
         alert("You must have at least one room in the cart to checkout!");
         return;
     }
-    if (!currentUser) {
-        alert("Please login first!");
-        cartDrawer.classList.remove('open');
-        authModal.style.display = 'flex';
-        return;
-    }
     cartDrawer.classList.remove('open');
     document.getElementById('checkout-total').innerText = document.getElementById('cart-total-price').innerText;
     checkoutModal.style.display = 'flex';
@@ -356,7 +357,6 @@ function setupEventListeners() {
     };
 
     // Auth flows
-    document.getElementById('login-btn').onclick = () => authModal.style.display = 'flex';
     document.getElementById('tab-login').onclick = () => { document.getElementById('login-form').style.display = 'block'; document.getElementById('signup-form').style.display = 'none'; document.getElementById('tab-login').className = 'active'; document.getElementById('tab-signup').className = ''; }
     document.getElementById('tab-signup').onclick = () => { document.getElementById('login-form').style.display = 'none'; document.getElementById('signup-form').style.display = 'block'; document.getElementById('tab-login').className = ''; document.getElementById('tab-signup').className = 'active'; }
     
@@ -371,7 +371,8 @@ function setupEventListeners() {
                 currentUser = data.user; 
                 localStorage.setItem('user', JSON.stringify(currentUser)); 
                 updateNav(); 
-                authModal.style.display = 'none'; 
+                document.getElementById('main-navbar').style.display = 'flex';
+                showSection('hero-sec');
             } else {
                 alert(data.error || "Login failed.");
             }
@@ -381,18 +382,28 @@ function setupEventListeners() {
     document.getElementById('signup-form').onsubmit = async (e) => {
         e.preventDefault();
         try {
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
             const res = await fetch(`${API_BASE}/register`, {
                 method: 'POST', body: JSON.stringify({ 
                     name: document.getElementById('signup-name').value,
-                    email: document.getElementById('signup-email').value,
+                    email: email,
                     phone: document.getElementById('signup-phone').value,
-                    password: document.getElementById('signup-password').value 
+                    password: password 
                 })
             });
             const data = await res.json();
             if (res.ok) { 
-                alert("Sign up successful! Please log in.");
-                document.getElementById('tab-login').click();
+                // Auto login to seamlessly take them to the rooms
+                const loginRes = await fetch(`${API_BASE}/login`, {
+                    method: 'POST', body: JSON.stringify({ email, password })
+                });
+                const loginData = await loginRes.json();
+                currentUser = loginData.user;
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                updateNav();
+                document.getElementById('main-navbar').style.display = 'flex';
+                showSection('rooms');
             } else {
                 alert(data.error || "Sign up failed.");
             }

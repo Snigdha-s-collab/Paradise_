@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header class="navbar">
+    <header class="navbar" id="main-navbar" style="display:none;">
         <div class="logo">Paradise Hotel</div>
         <nav>
             <a href="#" onclick="showSection('rooms')">Rooms</a>
@@ -24,7 +24,50 @@
     </header>
 
     <main id="main-content">
-        <section class="hero" id="hero-sec">
+        <!-- Auth Section -->
+        <section class="hero" id="sec-auth" style="display:none;">
+            <div class="hero-content" style="background: rgba(255, 255, 255, 0.95); padding: 2rem; border-radius: 12px; color: #333; max-width: 400px; margin: auto;">
+                <h2 style="margin-bottom:1rem;">Welcome to Paradise</h2>
+                <div class="auth-tabs" style="margin-bottom: 1.5rem;">
+                    <button class="active" id="tab-login">Login</button>
+                    <button id="tab-signup">Sign Up</button>
+                </div>
+                
+                <form id="login-form">
+                    <div class="input-group">
+                        <label>Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit" class="btn-primary full-width">Login to Explore</button>
+                </form>
+
+                <form id="signup-form" style="display:none;">
+                    <div class="input-group">
+                        <label>Name</label>
+                        <input type="text" id="signup-name" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Email</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Phone</label>
+                        <input type="tel" id="signup-phone">
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="signup-password" required>
+                    </div>
+                    <button type="submit" class="btn-primary full-width">Register & Enter</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="hero" id="hero-sec" style="display:none;">
             <div class="hero-content">
                 <h1>Experience True Luxury</h1>
                 <p>Your ultimate vacation destination mapping premium rooms and exquisite activities.</p>
@@ -136,7 +179,6 @@
         </div>
     </div>
 
-    <!-- Checkout Modal -->
     <div id="checkout-modal" class="modal">
         <div class="modal-content small-modal">
             <span class="close-btn">&times;</span>
@@ -154,49 +196,6 @@
                     </select>
                 </div>
                 <button type="submit" class="btn-primary full-width" id="confirm-book-btn">Pay & Confirm Booking</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Auth Modal -->
-    <div id="auth-modal" class="modal">
-        <div class="modal-content small-modal">
-            <span class="close-btn">&times;</span>
-            <div class="auth-tabs">
-                <button class="active" id="tab-login">Login</button>
-                <button id="tab-signup">Sign Up</button>
-            </div>
-            
-            <form id="login-form">
-                <div class="input-group">
-                    <label>Email</label>
-                    <input type="email" id="login-email" required>
-                </div>
-                <div class="input-group">
-                    <label>Password</label>
-                    <input type="password" id="login-password" required>
-                </div>
-                <button type="submit" class="btn-primary full-width">Login</button>
-            </form>
-
-            <form id="signup-form" style="display:none;">
-                <div class="input-group">
-                    <label>Name</label>
-                    <input type="text" id="signup-name" required>
-                </div>
-                <div class="input-group">
-                    <label>Email</label>
-                    <input type="email" id="signup-email" required>
-                </div>
-                <div class="input-group">
-                    <label>Phone</label>
-                    <input type="tel" id="signup-phone">
-                </div>
-                <div class="input-group">
-                    <label>Password</label>
-                    <input type="password" id="signup-password" required>
-                </div>
-                <button type="submit" class="btn-primary full-width">Create Account</button>
             </form>
         </div>
     </div>
