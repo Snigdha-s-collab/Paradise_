@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paradise Hotel | Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { background-color: var(--bg-dark); }
+        .admin-sidebar {
+            width: 250px;
+            height: 100vh;
+            background: var(--bg-card);
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding-top: 5rem;
+            border-right: 1px solid var(--border);
+        }
+        .admin-sidebar a {
+            display: block;
+            padding: 1rem 2rem;
+            color: var(--text-main);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .admin-sidebar a:hover, .admin-sidebar a.active {
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--primary);
+            border-right: 3px solid var(--primary);
+        }
+        .admin-main {
+            margin-left: 250px;
+            padding: 5rem 2rem 2rem 2rem;
+        }
+        .admin-header {
+            position: fixed;
+            top: 0; left: 250px; right: 0;
+            height: 4rem;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-header">
+        <h2>Admin Dashboard</h2>
+        <a href="index.html" class="btn-outline">Back to Website</a>
+    </div>
+
+    <div class="admin-sidebar">
+        <a href="#" class="active" onclick="showSection('dashboard')">Dashboard Overview</a>
+        <a href="#" onclick="showSection('rooms')">Manage Rooms</a>
+        <a href="#" onclick="showSection('bookings')">Manage Bookings</a>
+    </div>
+
+    <div class="admin-main">
+        <!-- Dashboard View -->
+        <section id="sec-dashboard">
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3><span id="stat-bookings">0</span></h3>
+                    <p>Total Bookings</p>
+                </div>
+                <div class="stat-card">
+                    <h3>₹<span id="stat-revenue">0</span></h3>
+                    <p>Total Revenue</p>
+                </div>
+                <div class="stat-card">
+                    <h3><span id="stat-rooms">0</span></h3>
+                    <p>Available Rooms</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Rooms View -->
+        <section id="sec-rooms" style="display:none;">
+            <div style="display:flex; justify-content:space-between; margin-bottom: 1rem;">
+                <h2>Room Management</h2>
+                <button class="btn-primary" onclick="document.getElementById('add-room-modal').style.display='flex'">+ Add New Room</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>Price</th>
+                        <th>Facilities</th>
+                        <th>Available</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="rooms-tbody">
+                    <!-- Rooms poplulated here -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Bookings View -->
+        <section id="sec-bookings" style="display:none;">
+            <h2>Booking Management</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Room</th>
+                        <th>Dates</th>
+                        <th>Food Package</th>
+                        <th>Total Paid</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="bookings-tbody">
+                    <!-- Bookings -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <!-- Add Room Modal -->
+    <div id="add-room-modal" class="modal">
+        <div class="modal-content small-modal">
+            <span class="close-btn">&times;</span>
+            <h2>Add / Edit Room</h2>
+            <form id="add-room-form" class="mt-4">
+                <input type="hidden" id="edit-room-id">
+                <div class="input-group">
+                    <label>Room Type</label>
+                    <select id="room-type">
+                        <option>Single</option>
+                        <option>Double</option>
+                        <option>Suite</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Has AC?</label>
+                    <select id="room-ac">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Price per Night</label>
+                    <input type="number" id="room-price" required>
+                </div>
+                <div class="input-group">
+                    <label>Facilities (Comma separated)</label>
+                    <input type="text" id="room-facilities" placeholder="TV,WiFi,Shower">
+                </div>
+                <!-- Not including image URL strictly to keep simple, letting backend use unslpash default or setting empty -->
+                <button type="submit" class="btn-primary full-width">Save Room</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
