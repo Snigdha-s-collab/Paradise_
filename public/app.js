@@ -6,7 +6,7 @@ let allServices = [];
 
 // CART STATE
 let cart = {
-    room: null, // { type, has_ac, price, check_in, check_out, guests, food_name, food_price }
+    rooms: [], // array of { type, has_ac, base_price, check_in, check_out, guests, food_name, food_price }
     services: [] // array of { id, name, price }
 };
 
@@ -142,15 +142,12 @@ function updateRoomPreviewPrice() {
 
 document.getElementById('add-room-form').onsubmit = (e) => {
     e.preventDefault();
-    if (cart.room) {
-        if (!confirm("You already have a room in the cart. Replace it?")) return;
-    }
     const cin = document.getElementById('checkin-date').value;
     const cout = document.getElementById('checkout-date').value;
     if (cin >= cout) { alert("Check-out must be after check-in."); return; }
 
     const foodVal = document.getElementById('food-package').value.split('|');
-    cart.room = {
+    cart.rooms.push({
         type: tempRoomConfig.type,
         has_ac: tempRoomConfig.has_ac,
         base_price: tempRoomConfig.base_price,
@@ -159,7 +156,7 @@ document.getElementById('add-room-form').onsubmit = (e) => {
         guests: parseInt(document.getElementById('guests-count').value),
         food_name: foodVal[0],
         food_price: parseFloat(foodVal[1])
-    };
+    });
     
     bookingModal.style.display = 'none';
     renderCart();
@@ -182,8 +179,8 @@ function removeServiceFromCart(id) {
     renderCart();
 }
 
-function removeRoomFromCart() {
-    cart.room = null;
+function removeRoomFromCart(index) {
+    cart.rooms.splice(index, 1);
     renderCart();
 }
 
@@ -191,30 +188,34 @@ function removeRoomFromCart() {
 function renderCart() {
     let total = 0;
     const rC = document.getElementById('cart-room-container');
-    if (cart.room) {
-        const cin = new Date(cart.room.check_in);
-        const cout = new Date(cart.room.check_out);
-        let days = Math.ceil(Math.abs(cout - cin) / (1000 * 60 * 60 * 24));
-        if (days <= 0 || isNaN(days)) days = 1;
+    rC.innerHTML = '';
+    
+    if (cart.rooms.length > 0) {
+        cart.rooms.forEach((rm, index) => {
+            const cin = new Date(rm.check_in);
+            const cout = new Date(rm.check_out);
+            let days = Math.ceil(Math.abs(cout - cin) / (1000 * 60 * 60 * 24));
+            if (days <= 0 || isNaN(days)) days = 1;
 
-        const rPrice = cart.room.base_price * days;
-        const fPrice = cart.room.food_price * days;
-        total += rPrice + fPrice;
+            const rPrice = rm.base_price * days;
+            const fPrice = rm.food_price * days;
+            total += rPrice + fPrice;
 
-        rC.innerHTML = `
-            <div class="cart-item">
-                <button class="cart-rm-btn" onclick="removeRoomFromCart()">Remove</button>
-                <h4>${cart.room.type} Room ${cart.room.has_ac ? '(AC)' : ''}</h4>
-                <p style="font-size:0.9rem; color:var(--text-muted);">${cart.room.check_in} to ${cart.room.check_out} (${days} nights)</p>
-                <div style="display:flex; justify-content:space-between; margin-top:0.5rem;">
-                    <span>Room:</span><span>₹${rPrice}</span>
+            rC.innerHTML += `
+                <div class="cart-item">
+                    <button class="cart-rm-btn" onclick="removeRoomFromCart(${index})">Remove</button>
+                    <h4>${rm.type} Room ${rm.has_ac ? '(AC)' : ''}</h4>
+                    <p style="font-size:0.9rem; color:var(--text-muted);">${rm.check_in} to ${rm.check_out} (${days} nights)</p>
+                    <div style="display:flex; justify-content:space-between; margin-top:0.5rem;">
+                        <span>Room:</span><span>₹${rPrice}</span>
+                    </div>
+                    ${rm.food_name !== 'None' ? `
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Food (${rm.food_name}):</span><span>₹${fPrice}</span>
+                    </div>` : ''}
                 </div>
-                ${cart.room.food_name !== 'None' ? `
-                <div style="display:flex; justify-content:space-between;">
-                    <span>Food (${cart.room.food_name}):</span><span>₹${fPrice}</span>
-                </div>` : ''}
-            </div>
-        `;
+            `;
+        });
     } else {
         rC.innerHTML = `<p style="color:var(--text-muted); font-style:italic;">No room selected</p>`;
     }
@@ -238,13 +239,13 @@ function renderCart() {
     }
 
     document.getElementById('cart-total-price').innerText = `₹${total}`;
-    document.getElementById('cart-badge').innerText = (cart.room ? 1 : 0) + cart.services.length;
+    document.getElementById('cart-badge').innerText = cart.rooms.length + cart.services.length;
 }
 
 // ------ CHECKOUT WORKFLOW ------
 function checkout() {
-    if (!cart.room) {
-        alert("You must have a room in the cart to checkout!");
+    if (cart.rooms.length === 0) {
+        alert("You must have at least one room in the cart to checkout!");
         return;
     }
     if (!currentUser) {
@@ -264,48 +265,61 @@ document.getElementById('checkout-form').onsubmit = async (e) => {
     btn.innerText = "Processing...";
     btn.disabled = true;
 
-    // Calculate total precisely
-    const cin = new Date(cart.room.check_in); const cout = new Date(cart.room.check_out);
-    let days = Math.ceil(Math.abs(cout - cin) / (1000 * 60 * 60 * 24));
-    let totalAmount = (cart.room.base_price * days) + (cart.room.food_price * days);
-    let srvIds = [];
-    cart.services.forEach(s => { totalAmount += s.price; srvIds.push(s.id); });
+    let srvIds = cart.services.map(s => s.id);
 
-    setTimeout(async () => {
-        try {
+    try {
+        let hasError = false;
+        let lastErrorMsg = "";
+        
+        for (let i = 0; i < cart.rooms.length; i++) {
+            let rm = cart.rooms[i];
+            let cin = new Date(rm.check_in); let cout = new Date(rm.check_out);
+            let days = Math.ceil(Math.abs(cout - cin) / (1000 * 60 * 60 * 24));
+            if (days <= 0 || isNaN(days)) days = 1;
+            
+            let rmTotal = (rm.base_price * days) + (rm.food_price * days);
+            if (i === 0) {
+                cart.services.forEach(s => rmTotal += s.price);
+            }
+
             const res = await fetch(`${API_BASE}/bookings`, {
                 method: 'POST',
                 body: JSON.stringify({
                     user_id: currentUser.id,
-                    room_type: cart.room.type,
-                    has_ac: cart.room.has_ac,
-                    check_in: cart.room.check_in,
-                    check_out: cart.room.check_out,
-                    guests: cart.room.guests,
-                    total_price: totalAmount,
-                    food_package: cart.room.food_name,
-                    services_booked: srvIds
+                    room_type: rm.type,
+                    has_ac: rm.has_ac,
+                    check_in: rm.check_in,
+                    check_out: rm.check_out,
+                    guests: rm.guests,
+                    total_price: rmTotal,
+                    food_package: rm.food_name,
+                    services_booked: (i === 0) ? srvIds : []
                 })
             });
             const data = await res.json();
-            btn.innerText = "Pay & Confirm Booking";
-            btn.disabled = false;
-
-            if (res.ok) {
-                alert(`Payment successful! Booking confirmed for physical Room #${data.room_id}`);
-                cart = { room: null, services: [] };
-                renderCart();
-                checkoutModal.style.display = 'none';
-                document.getElementById('my-bookings-btn').click();
-            } else {
-                alert(`Booking failed: ${data.error}`);
+            if (!res.ok) {
+                hasError = true;
+                lastErrorMsg = data.error;
             }
-        } catch(e) {
-            alert("Error communicating with server.");
-            btn.innerText = "Pay & Confirm Booking";
-            btn.disabled = false;
         }
-    }, 1500);
+
+        btn.innerText = "Pay & Confirm Booking";
+        btn.disabled = false;
+
+        if (!hasError) {
+            alert(`Payment successful! Bookings confirmed.`);
+            cart = { rooms: [], services: [] };
+            renderCart();
+            checkoutModal.style.display = 'none';
+            document.getElementById('my-bookings-btn').click();
+        } else {
+            alert(`Booking partial or failed: ${lastErrorMsg}`);
+        }
+    } catch(e) {
+        alert("Error communicating with server.");
+        btn.innerText = "Pay & Confirm Booking";
+        btn.disabled = false;
+    }
 }
 
 // ------ AUTH / EVENT LISTENERS ------
@@ -353,9 +367,35 @@ function setupEventListeners() {
                 method: 'POST', body: JSON.stringify({ email: document.getElementById('login-email').value, password: document.getElementById('login-password').value })
             });
             const data = await res.json();
-            if (res.ok) { currentUser = data.user; localStorage.setItem('user', JSON.stringify(currentUser)); updateNav(); authModal.style.display = 'none'; } 
-            else alert(data.error);
-        } catch(e) {}
+            if (res.ok) { 
+                currentUser = data.user; 
+                localStorage.setItem('user', JSON.stringify(currentUser)); 
+                updateNav(); 
+                authModal.style.display = 'none'; 
+            } else {
+                alert(data.error || "Login failed.");
+            }
+        } catch(e) { alert("Network error. Please try again."); }
     };
-    // Signup omit for brevity logic equivalent to last step...
+    
+    document.getElementById('signup-form').onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch(`${API_BASE}/register`, {
+                method: 'POST', body: JSON.stringify({ 
+                    name: document.getElementById('signup-name').value,
+                    email: document.getElementById('signup-email').value,
+                    phone: document.getElementById('signup-phone').value,
+                    password: document.getElementById('signup-password').value 
+                })
+            });
+            const data = await res.json();
+            if (res.ok) { 
+                alert("Sign up successful! Please log in.");
+                document.getElementById('tab-login').click();
+            } else {
+                alert(data.error || "Sign up failed.");
+            }
+        } catch(e) { alert("Network error. Please try again."); }
+    };
 }
