@@ -62,19 +62,45 @@ async function loadRooms() {
     try {
         const res = await fetch(`${API_BASE}/rooms`);
         allRooms = await res.json();
-        const uniqueGroups = {};
-        allRooms.forEach(r => {
-            if (r.is_available) {
-                const key = r.type + '_' + r.has_ac;
-                if (!uniqueGroups[key]) {
-                    uniqueGroups[key] = { ...r, available_count: 1 };
-                } else {
-                    uniqueGroups[key].available_count++;
-                }
-            }
-        });
-        renderRooms(Object.values(uniqueGroups));
+        applyFilters();
     } catch (e) { console.error('Failed to load rooms'); }
+}
+
+function applyFilters() {
+    const typeFilter = document.getElementById('filter-type').value;
+    const acFilter = document.getElementById('filter-ac').value;
+    const sortVal = document.getElementById('sort-price').value;
+
+    let filtered = allRooms.filter(r => r.is_available);
+
+    if (typeFilter !== 'All') {
+        filtered = filtered.filter(r => r.type === typeFilter);
+    }
+    
+    if (acFilter !== 'All') {
+        const wantsAc = (acFilter === 'AC');
+        filtered = filtered.filter(r => r.has_ac === wantsAc);
+    }
+
+    const uniqueGroups = {};
+    filtered.forEach(r => {
+        const key = r.type + '_' + r.has_ac;
+        if (!uniqueGroups[key]) {
+            uniqueGroups[key] = { ...r, available_count: 1 };
+        } else {
+            uniqueGroups[key].available_count++;
+        }
+    });
+
+    let result = Object.values(uniqueGroups);
+
+    if (sortVal === 'asc') {
+        result.sort((a, b) => a.price - b.price);
+    } else if (sortVal === 'desc') {
+        result.sort((a, b) => b.price - a.price);
+    }
+
+    renderRooms(result);
 }
 
 async function loadServices() {
@@ -329,6 +355,11 @@ function setupEventListeners() {
     document.querySelectorAll('.close-btn').forEach(btn => {
         btn.onclick = function() { this.closest('.modal').style.display = 'none'; }
     });
+    
+    // Filter bindings
+    document.getElementById('filter-type').onchange = applyFilters;
+    document.getElementById('filter-ac').onchange = applyFilters;
+    document.getElementById('sort-price').onchange = applyFilters;
 
     document.getElementById('logout-btn').onclick = () => {
         localStorage.removeItem('user'); currentUser = null; updateNav(); window.location.reload();
