@@ -105,6 +105,11 @@ void Database::seed_data() {
     }
     sqlite3_finalize(stmt);
 
+    // Explicitly FORCE an update to existing DB instances to patch broken Unsplash images
+    execute_query("UPDATE services SET image_url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Le_Meridien_Bora_Bora_pool.jpg/640px-Le_Meridien_Bora_Bora_pool.jpg' WHERE name = 'Swimming Pool';");
+    execute_query("UPDATE services SET image_url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Cycling_in_Amsterdam.jpg/640px-Cycling_in_Amsterdam.jpg' WHERE name = 'Cycling';");
+    execute_query("UPDATE services SET image_url = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Raised_bed_garden.jpg/640px-Raised_bed_garden.jpg' WHERE name = 'Gardening';");
+
     // Exact 45 Rooms
     if (sqlite3_prepare_v2(db, "SELECT count(*) FROM rooms", -1, &stmt, NULL) == SQLITE_OK) {
         if (sqlite3_step(stmt) == SQLITE_ROW && sqlite3_column_int(stmt, 0) == 0) {
