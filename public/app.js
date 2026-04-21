@@ -466,6 +466,5 @@ function setupEventListeners() {
                 alert(data.error || "Sign up failed.");
             }
         } catch(e) { alert("Network error. Please try again."); }
-        } catch(e) { alert("Network error. Please try again."); }
     };
 }
