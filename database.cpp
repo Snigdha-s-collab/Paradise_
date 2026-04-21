@@ -94,12 +94,12 @@ void Database::seed_data() {
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, "SELECT count(*) FROM services", -1, &stmt, NULL) == SQLITE_OK) {
         if (sqlite3_step(stmt) == SQLITE_ROW && sqlite3_column_int(stmt, 0) == 0) {
-            execute_query("INSERT INTO services (name, description, image_url, price) VALUES ('Swimming Pool', 'Infinity edge temperature-controlled pool.', 'https://images.unsplash.com/photo-1576013551627-c02082ae05d7?auto=format&fit=crop&q=80', 300)");
+            execute_query("INSERT INTO services (name, description, image_url, price) VALUES ('Swimming Pool', 'Infinity edge temperature-controlled pool.', 'https://images.unsplash.com/photo-1572331165267-854da01e00ee?auto=format&fit=crop&q=80', 300)");
             execute_query("INSERT INTO services (name, description, image_url, price) VALUES ('Spa', 'Relaxing treatments with organic essentials.', 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&q=80', 1500)");
             execute_query("INSERT INTO services (name, description, image_url, price) VALUES ('Gym', 'Fully equipped state-of-the-art fitness center.', 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80', 200)");
             execute_query("INSERT INTO services (name, description, image_url, price) VALUES ('Movie Theater', 'Private screening room for families and couples.', 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&q=80', 500)");
-            execute_query("INSERT INTO services (name, description, image_url, price) VALUES ('Cycling', 'Morning trails and scenic bicycle rentals.', 'https://images.unsplash.com/photo-1571333250630-f0230c1e8169?auto=format&fit=crop&q=80', 150)");
-            execute_query("INSERT INTO services (name, description, image_url, price) VALUES ('Gardening', 'Outdoor organic planting and nature experience.', 'https://images.unsplash.com/photo-1416879598555-220b8bf970cc?auto=format&fit=crop&q=80', 100)");
+            execute_query("INSERT INTO services (name, description, image_url, price) VALUES ('Cycling', 'Morning trails and scenic bicycle rentals.', 'https://images.unsplash.com/photo-1471506480208-91b3a4cc78be?auto=format&fit=crop&q=80', 150)");
+            execute_query("INSERT INTO services (name, description, image_url, price) VALUES ('Gardening', 'Outdoor organic planting and nature experience.', 'https://images.unsplash.com/photo-1585320806055-61bc81452df3?auto=format&fit=crop&q=80', 100)");
             execute_query("INSERT INTO services (name, description, image_url, price) VALUES ('Gaming Room', 'Arcade, VR, and indoor gaming lounge.', 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80', 250)");
         }
     }

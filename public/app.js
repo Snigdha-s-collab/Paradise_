@@ -366,7 +366,7 @@ function setupEventListeners() {
                     let createdDate = new Date(b.created_at + "Z");
                     let hoursSinceCreation = (new Date() - createdDate) / (1000 * 60 * 60);
                     if (hoursSinceCreation <= 48) {
-                        cancelBtn = `<button class="btn-outline text-danger" style="padding:0.2rem 0.6rem; margin-top:0.5rem;" onclick="cancelBooking(${b.id})">Cancel Booking (Free)</button>`;
+                        cancelBtn = `<button class="btn-outline text-danger cancel-btn" data-id="${b.id}" style="padding:0.2rem 0.6rem; margin-top:0.5rem;">Cancel Booking</button>`;
                     }
                 }
 
@@ -381,6 +381,31 @@ function setupEventListeners() {
                     </div>
                 `;
             });
+            
+            // Explicitly bind click events for strict CSP bypassing
+            document.querySelectorAll('.cancel-btn').forEach(btn => {
+                btn.onclick = async (e) => {
+                    e.preventDefault();
+                    let bookingId = e.target.getAttribute('data-id');
+                    let answer = confirm("Do you want to cancel your bookings?");
+                    if (!answer) return;
+                    
+                    try {
+                        const res = await fetch(`${API_BASE}/bookings/${bookingId}/status`, { 
+                            method: 'PUT', 
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({status: 'Cancelled'}) 
+                        });
+                        if (res.ok) {
+                            alert('Booking successfully cancelled.');
+                            document.getElementById('my-bookings-btn').click();
+                        } else {
+                            alert('Could not cancel the booking at this time.');
+                        }
+                    } catch(err) { alert('Network error'); }
+                };
+            });
+            
         } catch(e) {}
     };
 
@@ -441,18 +466,6 @@ function setupEventListeners() {
                 alert(data.error || "Sign up failed.");
             }
         } catch(e) { alert("Network error. Please try again."); }
+        } catch(e) { alert("Network error. Please try again."); }
     };
 }
-
-window.cancelBooking = async (id) => {
-    if (!confirm('Are you sure you want to cancel this booking? This action is free of charge if eligible.')) return;
-    try {
-        const res = await fetch(API_BASE + '/bookings/' + id + '/status', { method: 'PUT', body: JSON.stringify({status: 'Cancelled'}) });
-        if (res.ok) {
-            alert('Booking successfully cancelled.');
-            document.getElementById('my-bookings-btn').click();
-        } else {
-            alert('Could not cancel the booking at this time.');
-        }
-    } catch(e) { alert('Network error'); }
-};
