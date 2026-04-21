@@ -433,6 +433,27 @@ bool Database::update_booking_status(int booking_id, const std::string& status) 
     sqlite3_bind_int(stmt, 2, booking_id);
     bool result = sqlite3_step(stmt) == SQLITE_DONE;
     sqlite3_finalize(stmt);
+
+    if (result && status == "Cancelled") {
+        const char* get_room_query = "SELECT room_id FROM bookings WHERE id = ?";
+        sqlite3_stmt* stmt_get;
+        if (sqlite3_prepare_v2(db, get_room_query, -1, &stmt_get, NULL) == SQLITE_OK) {
+            sqlite3_bind_int(stmt_get, 1, booking_id);
+            if (sqlite3_step(stmt_get) == SQLITE_ROW) {
+                int room_id = sqlite3_column_int(stmt_get, 0);
+                
+                const char* update_room_query = "UPDATE rooms SET is_available = 1 WHERE id = ?";
+                sqlite3_stmt* stmt_update;
+                if (sqlite3_prepare_v2(db, update_room_query, -1, &stmt_update, NULL) == SQLITE_OK) {
+                    sqlite3_bind_int(stmt_update, 1, room_id);
+                    sqlite3_step(stmt_update);
+                    sqlite3_finalize(stmt_update);
+                }
+            }
+            sqlite3_finalize(stmt_get);
+        }
+    }
+
     return result;
 }
 
