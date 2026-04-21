@@ -78,7 +78,7 @@ function toggleCart() {
 
 async function loadRooms() {
     try {
-        const res = await fetch(`${API_BASE}/rooms`);
+        const res = await fetch(`${API_BASE}/rooms?t=${Date.now()}`);
         allRooms = await res.json();
         applyFilters();
     } catch (e) { console.error('Failed to load rooms'); }
@@ -123,7 +123,7 @@ function applyFilters() {
 
 async function loadServices() {
     try {
-        const res = await fetch(`${API_BASE}/services`);
+        const res = await fetch(`${API_BASE}/services?t=${Date.now()}`);
         allServices = await res.json();
         renderServices(allServices);
     } catch (e) { console.error('Failed to load services'); }
@@ -411,7 +411,7 @@ function setupEventListeners() {
         if (!currentUser) return;
         document.getElementById('my-bookings-modal').style.display = 'flex';
         try {
-            const res = await fetch(`${API_BASE}/bookings/user/${currentUser.id}`);
+            const res = await fetch(`${API_BASE}/bookings/user/${currentUser.id}?t=${Date.now()}`);
             const data = await res.json();
             const container = document.getElementById('user-bookings-list');
             container.innerHTML = data.length === 0 ? '<p>No bookings found.</p>' : '';
