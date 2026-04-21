@@ -18,6 +18,7 @@ function loadCart() {
     } else {
         cart = { rooms: [], services: [] };
     }
+    renderCart();
 }
 
 function saveCart() {
