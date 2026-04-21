@@ -428,13 +428,16 @@ function setupEventListeners() {
                     }
                 }
 
+                let refundMsg = b.status === 'Cancelled' ? '<br><span style="font-size:0.85rem; color:var(--text-muted); font-weight:normal;">Refund will be initiated if paid in 24 hrs</span>' : '';
+
                 container.innerHTML += `
                     <div class="card" style="margin-bottom:1rem; padding:1rem;">
-                        <h3>Booking #${b.id} - ${b.room_type} Room</h3>
+                        <h3>${b.room_type} Room</h3>
+                        <p style="font-weight:bold; color:var(--primary); margin-bottom:0.5rem;">Booking ID: #${b.id}</p>
                         <p>Dates: ${b.check_in} to ${b.check_out} | Guests: ${b.guests}</p>
                         <p>Food: ${b.food_package} | Services: ${s_txt}</p>
                         <p style="color:var(--primary); font-size:1.1rem; font-weight:bold;">Total Paid: ₹${b.total_price}</p>
-                        <p>Status: <strong class="${b.status === 'Cancelled' ? 'text-danger' : 'text-success'}">${b.status}</strong></p>
+                        <p>Status: <strong class="${b.status === 'Cancelled' ? 'text-danger' : 'text-success'}">${b.status}</strong>${refundMsg}</p>
                         ${cancelBtn}
                     </div>
                 `;
@@ -455,7 +458,7 @@ function setupEventListeners() {
                             body: JSON.stringify({status: 'Cancelled'}) 
                         });
                         if (res.ok) {
-                            alert('Booking successfully cancelled.');
+                            alert('Booking successfully cancelled. Refund will be initiated if paid in 24 hrs.');
                             document.getElementById('my-bookings-btn').click();
                         } else {
                             alert('Could not cancel the booking at this time.');
