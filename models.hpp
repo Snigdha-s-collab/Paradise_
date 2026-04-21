@@ -59,6 +59,7 @@ struct Booking {
     // For joining data when sending to UI
     std::string customer_name;
     std::string room_type;
+    std::string created_at;
 
     json to_json() const {
         return json{
@@ -67,7 +68,8 @@ struct Booking {
             {"guests", guests}, {"total_price", total_price}, 
             {"food_package", food_package},
             {"services_booked", services_booked}, {"status", status},
-            {"customer_name", customer_name}, {"room_type", room_type}
+            {"customer_name", customer_name}, {"room_type", room_type},
+            {"created_at", created_at}
         };
     }
 };

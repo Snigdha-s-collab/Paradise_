@@ -361,4 +361,4 @@ nav a:hover:not(.btn-primary):not(.btn-outline) { color: var(--primary); }
 .dropdown-content { display: none; position: absolute; right: 0; background-color: var(--bg-card); min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); z-index: 1000; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-top: 0.5rem; }
 .dropdown-content a { color: var(--text-main); padding: 12px 16px; text-decoration: none; display: block; margin-left: 0; transition: var(--transition); border-bottom: 1px solid rgba(255,255,255,0.05); }
 .dropdown-content a:hover { background-color: rgba(212,175,55,0.1); color: var(--primary); }
-.user-menu:hover .dropdown-content { display: block; }
+.dropdown-content.show { display: block; }

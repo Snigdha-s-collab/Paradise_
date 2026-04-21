@@ -336,8 +336,18 @@ function setupEventListeners() {
     
     document.getElementById('help-btn').onclick = (e) => {
         e.preventDefault();
-        alert("Need Help?\nParadise Helpline: +91 9876543210\nConcierge Desk: 1-800-PARADISE\nEmail: support@paradisehotel.com");
+        window.location.href = 'help.html';
     };
+    
+    document.getElementById('user-dropdown-btn').onclick = (e) => {
+        e.stopPropagation();
+        document.querySelector('.dropdown-content').classList.toggle('show');
+    };
+    window.addEventListener('click', (e) => {
+        if (!e.target.closest('#user-dropdown')) {
+            document.querySelector('.dropdown-content').classList.remove('show');
+        }
+    });
 
     document.getElementById('my-bookings-btn').onclick = async () => {
         if (!currentUser) return;
@@ -350,11 +360,12 @@ function setupEventListeners() {
             data.forEach(b => {
                 let s_txt = b.services_booked === "[]" ? "None" : "Included";
                 let cancelBtn = "";
-                if (b.status !== 'Cancelled') {
-                    // Check if > 48h from check_in
-                    let checkInDate = new Date(b.check_in + "T14:00:00");
-                    let hoursDiff = (checkInDate - new Date()) / (1000 * 60 * 60);
-                    if (hoursDiff >= 48) {
+                if (b.status !== 'Cancelled' && b.created_at) {
+                    // Check if < 48h from booking created_at time
+                    // SQLite CURRENT_TIMESTAMP is UTC
+                    let createdDate = new Date(b.created_at + "Z");
+                    let hoursSinceCreation = (new Date() - createdDate) / (1000 * 60 * 60);
+                    if (hoursSinceCreation <= 48) {
                         cancelBtn = `<button class="btn-outline text-danger" style="padding:0.2rem 0.6rem; margin-top:0.5rem;" onclick="cancelBooking(${b.id})">Cancel Booking (Free)</button>`;
                     }
                 }

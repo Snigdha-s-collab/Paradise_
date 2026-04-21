@@ -77,6 +77,7 @@ void Database::init_tables() {
             food_package TEXT,
             services_booked TEXT,
             status TEXT DEFAULT 'Confirmed',
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id),
             FOREIGN KEY(room_id) REFERENCES rooms(id)
         );
@@ -354,7 +355,7 @@ bool Database::create_booking(const Booking& booking) {
 std::vector<Booking> Database::get_bookings_by_user(int user_id) {
     std::vector<Booking> bookings;
     const char* query = R"(
-        SELECT b.id, b.user_id, b.room_id, b.check_in, b.check_out, b.guests, b.total_price, b.food_package, b.services_booked, b.status, u.name, r.type
+        SELECT b.id, b.user_id, b.room_id, b.check_in, b.check_out, b.guests, b.total_price, b.food_package, b.services_booked, b.status, u.name, r.type, b.created_at
         FROM bookings b
         JOIN users u ON b.user_id = u.id
         JOIN rooms r ON b.room_id = r.id
@@ -378,6 +379,7 @@ std::vector<Booking> Database::get_bookings_by_user(int user_id) {
             b.status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9));
             b.customer_name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10));
             b.room_type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11));
+            b.created_at = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 12));
             bookings.push_back(b);
         }
     }
@@ -388,7 +390,7 @@ std::vector<Booking> Database::get_bookings_by_user(int user_id) {
 std::vector<Booking> Database::get_all_bookings() {
     std::vector<Booking> bookings;
     const char* query = R"(
-        SELECT b.id, b.user_id, b.room_id, b.check_in, b.check_out, b.guests, b.total_price, b.food_package, b.services_booked, b.status, u.name, r.type
+        SELECT b.id, b.user_id, b.room_id, b.check_in, b.check_out, b.guests, b.total_price, b.food_package, b.services_booked, b.status, u.name, r.type, b.created_at
         FROM bookings b
         JOIN users u ON b.user_id = u.id
         JOIN rooms r ON b.room_id = r.id
@@ -410,6 +412,7 @@ std::vector<Booking> Database::get_all_bookings() {
             b.status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9));
             b.customer_name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10));
             b.room_type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11));
+            b.created_at = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 12));
             bookings.push_back(b);
         }
     }
