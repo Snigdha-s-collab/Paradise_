@@ -10,6 +10,22 @@ let cart = {
     services: [] // array of { id, name, price }
 };
 
+function loadCart() {
+    if (currentUser && currentUser.email) {
+        const saved = localStorage.getItem('cart_' + currentUser.email);
+        if (saved) cart = JSON.parse(saved);
+        else cart = { rooms: [], services: [] };
+    } else {
+        cart = { rooms: [], services: [] };
+    }
+}
+
+function saveCart() {
+    if (currentUser && currentUser.email) {
+        localStorage.setItem('cart_' + currentUser.email, JSON.stringify(cart));
+    }
+}
+
 // Modals
 const bookingModal = document.getElementById('booking-modal');
 const checkoutModal = document.getElementById('checkout-modal');
@@ -22,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     
     if (currentUser) {
+        loadCart();
         document.getElementById('main-navbar').style.display = 'flex';
         showSection('hero-sec');
     } else {
@@ -192,6 +209,7 @@ document.getElementById('add-room-form').onsubmit = (e) => {
         food_price: parseFloat(foodVal[1])
     });
     
+    saveCart();
     bookingModal.style.display = 'none';
     renderCart();
     cartDrawer.classList.add('open');
@@ -204,17 +222,20 @@ function addServiceToCart(id, name, price) {
         return;
     }
     cart.services.push({id, name, price});
+    saveCart();
     renderCart();
     cartDrawer.classList.add('open');
 }
 
 function removeServiceFromCart(id) {
     cart.services = cart.services.filter(s => s.id !== id);
+    saveCart();
     renderCart();
 }
 
 function removeRoomFromCart(index) {
     cart.rooms.splice(index, 1);
+    saveCart();
     renderCart();
 }
 
@@ -337,6 +358,7 @@ document.getElementById('checkout-form').onsubmit = async (e) => {
         if (!hasError) {
             alert(`Payment successful! Bookings confirmed.`);
             cart = { rooms: [], services: [] };
+            saveCart();
             renderCart();
             checkoutModal.style.display = 'none';
             document.getElementById('my-bookings-btn').click();
@@ -362,7 +384,11 @@ function setupEventListeners() {
     document.getElementById('sort-price').onchange = applyFilters;
 
     document.getElementById('logout-btn').onclick = () => {
-        localStorage.removeItem('user'); currentUser = null; updateNav(); window.location.reload();
+        localStorage.removeItem('user'); 
+        currentUser = null; 
+        cart = { rooms: [], services: [] };
+        updateNav(); 
+        window.location.reload();
     };
     
     document.getElementById('help-btn').onclick = (e) => {
@@ -457,6 +483,7 @@ function setupEventListeners() {
             if (res.ok) { 
                 currentUser = data.user; 
                 localStorage.setItem('user', JSON.stringify(currentUser)); 
+                loadCart();
                 updateNav(); 
                 document.getElementById('main-navbar').style.display = 'flex';
                 showSection('hero-sec');
@@ -490,6 +517,7 @@ function setupEventListeners() {
                 const loginData = await loginRes.json();
                 currentUser = loginData.user;
                 localStorage.setItem('user', JSON.stringify(currentUser));
+                loadCart();
                 updateNav();
                 document.getElementById('main-navbar').style.display = 'flex';
                 showSection('rooms');
